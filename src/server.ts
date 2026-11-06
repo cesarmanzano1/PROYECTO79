@@ -6,6 +6,7 @@ import { NotFoundHandler } from './middleware/middleware';
 import { setupSwagger } from './swagger';
 import { initDb } from './database/initDb';
 const app = express();
+app.disable('x-powered-by');
 
 app.use(cors()); // Para permitir peticiones desde el frontend
 app.use(express.json()); // Para procesar JSON en req.body
