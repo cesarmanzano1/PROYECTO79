@@ -96,7 +96,7 @@ router.get('/usuario', getAllUsers);
 
 /**
  * @openapi
- * /api/usuario/actualizar-contraseña:
+ * /api/usuario/actualizar-contrasena:
  *   put:
  *     summary: Actualizar contraseña de usuario
  *     tags:
@@ -125,6 +125,6 @@ router.get('/usuario', getAllUsers);
  *       404:
  *         description: Usuario no encontrado
  */
-router.put('/usuario/actualizar-contraseña', validateAuthInput, updateUser);
+router.put('/usuario/actualizar-contrasena', validateAuthInput, updateUser);
 
 export default router;
