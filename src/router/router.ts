@@ -96,7 +96,7 @@ router.get('/usuario', getAllUsers);
 
 /**
  * @openapi
- * /api/usuario/update-password:
+ * /api/usuario/actualizar-contraseña:
  *   put:
  *     summary: Actualizar contraseña de usuario
  *     tags:
