@@ -18,6 +18,10 @@ export const validateAuthInput = (req: Request, res: Response, next: NextFunctio
   if (!email || !password) {
     return res.status(400).json({ msg: 'El correo y la contraseña son obligatorios' });
   }
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ msg: 'Debes ingresar un correo electrónico válido' });
+  }
 
   next();
 };
