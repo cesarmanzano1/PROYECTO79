@@ -125,6 +125,6 @@ router.get('/usuario', getAllUsers);
  *       404:
  *         description: Usuario no encontrado
  */
-router.put('/usuario/actualizar-contraseña', updateUser);
+router.put('/usuario/actualizar-contraseña', validateAuthInput, updateUser);
 
 export default router;

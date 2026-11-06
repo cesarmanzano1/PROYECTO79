@@ -1,3 +1,4 @@
+//src/database/initDb.ts
 import { pool } from './db';
 
 export const initDb = async () => {
