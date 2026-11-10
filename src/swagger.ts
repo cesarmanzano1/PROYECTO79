@@ -12,7 +12,7 @@ const options: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: 'https://proyecto79.onrender.com',
+        url: 'https://proyecto79-1.onrender.com',
         description: 'Servidor de Producción (Render)'
       },
       {
