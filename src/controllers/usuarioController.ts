@@ -28,7 +28,9 @@ export const loginUser = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
-    const user = await UsuarioService.validateCredentials(email, password);
+    // Agrega ": any" a la declaración de la variable user
+    const user: any = await UsuarioService.validateCredentials(email, password);
+    
     if (!user) {
       return res.status(401).json({ msg: 'Credenciales inválidas' });
     }
@@ -42,7 +44,7 @@ export const loginUser = async (req: Request, res: Response) => {
 
     return res.status(200).json({
       msg: 'Login exitoso',
-      token, // 👈 Token dinámico y real
+      token, 
       user: { id: user.id, email: user.email }
     });
   } catch (error) {
