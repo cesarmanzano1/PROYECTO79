@@ -1,16 +1,17 @@
 //src/database/db.ts
-import { Pool } from 'pg';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Usará DATABASE_URL en Render o en tu .env local
-export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+// Si usas Render, crea una variable de entorno FIREBASE_CREDENTIALS 
+// y pega ahí el contenido del JSON de Firebase.
+const serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIALS || '{}');
+
+initializeApp({
+  credential: cert(serviceAccount as any)
 });
 
-// Prueba rápida de conexión
-pool.connect()
-  .then(() => console.log('Conectado exitosamente a PostgreSQL'))
-  .catch((err) => console.error('Error conectando a PostgreSQL:', err));
+export const db = getFirestore();
+console.log('Conectado exitosamente a Firebase Firestore');

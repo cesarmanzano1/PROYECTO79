@@ -1,40 +1,57 @@
-import { pool } from '../database/db';
+import { db } from '../database/db';
 
 export class UsuarioService {
   static async obtenerTodos() {
-    const result = await pool.query('SELECT id, email, created_at FROM usuarios');
-    return result.rows;
+    const snapshot = await db.collection('usuarios').get();
+    return snapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() }));
   }
 
   static async registrar(email: string, password: string) {
-    const result = await pool.query(
-      'INSERT INTO usuarios (email, password) VALUES ($1, $2) RETURNING id, email, created_at',
-      [email, password]
-    );
-    return result.rows[0];
+    const nuevoUsuario = {
+      email,
+      password,
+      created_at: new Date().toISOString()
+    };
+    // .add() crea un documento con un ID automático
+    const docRef = await db.collection('usuarios').add(nuevoUsuario);
+    return { id: docRef.id, ...nuevoUsuario };
   }
 
   static async findByEmail(email: string) {
-    const result = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1',
-      [email]
-    );
-    return result.rows[0] || null;
+    const snapshot = await db.collection('usuarios')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+      
+    if (snapshot.empty) return null;
+    
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
   }
 
   static async validateCredentials(email: string, password: string) {
-    const result = await pool.query(
-      'SELECT id, email FROM usuarios WHERE email = $1 AND password = $2',
-      [email, password]
-    );
-    return result.rows[0] || null;
+    const snapshot = await db.collection('usuarios')
+      .where('email', '==', email)
+      .where('password', '==', password)
+      .limit(1)
+      .get();
+      
+    if (snapshot.empty) return null;
+    
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
   }
 
   static async updatePassword(email: string, password: string) {
-    const result = await pool.query(
-      'UPDATE usuarios SET password = $1 WHERE email = $2 RETURNING id, email',
-      [password, email]
-    );
-    return result.rows[0] || null;
+    const snapshot = await db.collection('usuarios')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+      
+    if (snapshot.empty) return null;
+    
+    const doc = snapshot.docs[0];
+    await doc.ref.update({ password });
+    return { id: doc.id, email };
   }
 }
