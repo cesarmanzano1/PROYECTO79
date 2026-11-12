@@ -1,3 +1,4 @@
+// src/swagger.ts
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import { Express } from 'express';
@@ -8,7 +9,7 @@ const options: swaggerJSDoc.Options = {
     info: {
       title: 'PROYECTO79 API',
       version: '1.0.0',
-      description: 'Documentación de endpoints de autenticación y usuarios',
+      description: 'Documentación de endpoints de autenticación, catálogo de retos y evaluación'
     },
     servers: [
       {
@@ -19,7 +20,16 @@ const options: swaggerJSDoc.Options = {
         url: 'http://localhost:3000',
         description: 'Servidor de Desarrollo Local'
       }
-    ]
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT'
+        }
+      }
+    }
   },
   apis: ['./src/router/*.ts', './index.ts']
 };

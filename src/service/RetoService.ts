@@ -1,45 +1,102 @@
+// src/service/RetoService.ts
 import { db } from '../database/db';
+import { RETOS_SEMILLA, ejecutarSeedRetos } from '../database/seed';
 
 export class RetoService {
-  // 1. Agregamos el parámetro opcional (empresaFiltro)
-  static async obtenerTodos(empresaFiltro?: string) {
-    let query: any = db.collection('retos');
+  private static mapearRetoPublico(id: string, data: any) {
+    const empresa = data.empresa || data.company || '';
+    const titulo = data.titulo || data.title || '';
+    const notaPractica =
+      data.notaPractica ||
+      data.disclaimer ||
+      `Material de práctica inspirado en ${empresa} (no oficial)`;
+    const descripcion = data.descripcion || data.statement || '';
+    const formatoEntrada = data.formatoEntrada || data.inputFormat || '';
+    const formatoSalida = data.formatoSalida || data.outputFormat || '';
+    const ejemplo = data.ejemplo || {
+      entrada: data.exampleInput || '',
+      salida: data.exampleOutput || ''
+    };
+    const codigoInicial = data.codigoInicial || data.starterCode || '';
 
-    // 2. Si llega el nombre de la empresa desde el controlador, filtramos la base de datos
-    if (empresaFiltro) {
-      // NOTA: Si en Firebase lo dejaste con mayúscula, cambia 'empresa' por 'Empresa'
-      query = query.where('empresa', '==', empresaFiltro);
-    }
-
-    const snapshot = await query.get();
-    
-    return snapshot.docs.map((doc: any) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        empresa: data.empresa, // o data.Empresa
-        titulo: data.titulo,   // o data.Titulo
-        descripcion: data.descripcion, // o data.Descripcion
-      };
-    });
+    return {
+      id,
+      empresa,
+      titulo,
+      notaPractica,
+      descripcion,
+      formatoEntrada,
+      formatoSalida,
+      ejemplo,
+      codigoInicial,
+      company: empresa,
+      title: titulo,
+      disclaimer: notaPractica,
+      statement: descripcion,
+      inputFormat: formatoEntrada,
+      outputFormat: formatoSalida,
+      example: {
+        input: ejemplo.entrada || ejemplo.input || '',
+        output: ejemplo.salida || ejemplo.output || ''
+      },
+      starterCode: codigoInicial
+    };
   }
 
-  // Agrega esta nueva función aquí, dentro de la clase RetoService
-  static async obtenerPorId(id: string) {
-    const doc = await db.collection('retos').doc(id).get();
-    
-    if (!doc.exists) {
-      return null;
+  static async obtenerTodos(empresaFiltro?: string) {
+    let snapshot = await db.collection('retos').get();
+
+    if (snapshot.empty) {
+      await ejecutarSeedRetos();
+      snapshot = await db.collection('retos').get();
     }
 
-    const data = doc.data();
-    
+    let lista = snapshot.docs.map((doc: any) =>
+      this.mapearRetoPublico(doc.id, doc.data())
+    );
+
+    if (empresaFiltro) {
+      const filtro = empresaFiltro.trim().toLowerCase();
+      lista = lista.filter((r) => r.empresa.toLowerCase() === filtro);
+    }
+
+    return lista;
+  }
+
+  static async obtenerPorId(id: string) {
+    const doc = await db.collection('retos').doc(id).get();
+
+    if (!doc.exists) {
+      const semilla = RETOS_SEMILLA.find((r) => r.id === id);
+      if (!semilla) return null;
+      await ejecutarSeedRetos();
+      return this.mapearRetoPublico(semilla.id, semilla);
+    }
+
+    return this.mapearRetoPublico(doc.id, doc.data());
+  }
+
+  static async obtenerParaEvaluacion(id: string) {
+    const doc = await db.collection('retos').doc(id).get();
+
+    if (!doc.exists) {
+      const semilla = RETOS_SEMILLA.find((r) => r.id === id);
+      if (!semilla) return null;
+      await ejecutarSeedRetos();
+      return semilla;
+    }
+
+    const data = doc.data() as any;
+    const SemillaFallback = RETOS_SEMILLA.find((r) => r.id === id);
+
     return {
       id: doc.id,
-      empresa: data?.empresa,
-      titulo: data?.titulo,
-      descripcion: data?.descripcion,
-    
+      empresa: data.empresa || SemillaFallback?.empresa || '',
+      titulo: data.titulo || SemillaFallback?.titulo || '',
+      casosPrueba:
+        Array.isArray(data.casosPrueba) && data.casosPrueba.length > 0
+          ? data.casosPrueba
+          : SemillaFallback?.casosPrueba || []
     };
   }
 }
